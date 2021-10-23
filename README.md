@@ -5,4 +5,4 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## License
 
-Copyright (c) 2017-present Daniel Bayerlein. See [LICENSE](./LICENSE.md) for details.
+Copyright (c) 2021-present Olapat. See [LICENSE](./LICENSE.md) for details.
