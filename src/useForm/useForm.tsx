@@ -1,12 +1,14 @@
-import { useState, useCallback, useReducer } from 'react'
+import * as React from 'react'
+import { actionTypes } from './actions'
 import useCheckValidate, { checkErr } from './useCheckValidate'
-import PropTypes from 'prop-types'
-import { actionTypes } from './utils/actions'
 
-function reducerValues(state, action) {
+type State = any
+type Action = { type: string, key?: string, value?: any, payload?: any }
+
+function reducerValues(state: State, action: Action) {
   switch (action.type) {
     case actionTypes.MAIN.CHANGE:
-      return { ...state, [action.key]: action.value }
+      return { ...state, [action.key || '']: action.value }
     case actionTypes.MAIN.SET:
       return { ...state, ...action.payload }
     case actionTypes.MAIN.RESET:
@@ -16,10 +18,10 @@ function reducerValues(state, action) {
   }
 }
 
-function reducerRules(state, action) {
+function reducerRules(state: State, action: Action) {
   switch (action.type) {
     case actionTypes.MAIN.CHANGE:
-      return { ...state, [action.key]: action.value }
+      return { ...state, [action.key || '']: action.value }
     case actionTypes.MAIN.SET:
       return { ...state, ...action.payload }
     case actionTypes.MAIN.RESET:
@@ -29,10 +31,10 @@ function reducerRules(state, action) {
   }
 }
 
-function reducerError(state, action) {
+function reducerError(state: State, action: Action) {
   switch (action.type) {
     case actionTypes.MAIN.CHANGE:
-      return { ...state, [action.key]: action.value }
+      return { ...state, [action.key || '']: action.value }
     case actionTypes.MAIN.SET:
       return { ...state, ...action.payload }
     case actionTypes.MAIN.RESET:
@@ -42,23 +44,54 @@ function reducerError(state, action) {
   }
 }
 
-/**
- * @param {object} props {
- *  initialValues {object},
- *  rules {object}
- * }
- * @returns {object}
- */
-const useForm = (props) => {
+export type Rules = {
+  [unit: string]: {
+    'required'?: string | boolean,
+    'isAllowed'?: {
+      func: (value: any, values: {}) => boolean,
+      msg: React.ReactNode | string
+    }
+  },
+}
+
+export type Validate = boolean | [boolean, {}]
+
+export type UseFormType = {
+  initialValues: any
+  values: any
+  submitting: boolean,
+  setSubmitting: Function,
+  rules: Rules,
+  errors: any,
+  setValues: (prev: {}) => any,
+  validate: (next: Function, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void) => Validate,
+  setRules: (prev: Rules) => any,
+  setErrors: (prev: {}) => any,
+  handlerReset: (values: {}) => void,
+  handlerChange: (name?: string | {}, value?: any, type?: 'string' | 'number') => void,
+  blackList?: string | string[],
+  whiteList?: string | string[],
+  submitted: boolean
+}
+
+interface Props {
+  initialValues: any,
+  rules: Rules,
+  blackList?: string | string[],
+  whiteList?: string | string[],
+  onValuesUpdate?: (values: {}) => void
+}
+
+const useForm = (props: Props): UseFormType => {
   const { initialValues, rules: initialRules, blackList, whiteList, onValuesUpdate } = props
-  const [values, dispatchValues] = useReducer(reducerValues, initialValues)
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const [rules, dispatchRules] = useReducer(reducerRules, initialRules)
-  const [errors, dispatchErrors] = useReducer(reducerError, {})
+  const [values, dispatchValues] = React.useReducer(reducerValues, initialValues)
+  const [submitting, setSubmitting] = React.useState(false)
+  const [submitted, setSubmitted] = React.useState(false)
+  const [rules, dispatchRules] = React.useReducer(reducerRules, initialRules)
+  const [errors, dispatchErrors] = React.useReducer(reducerError, {})
   const checkValidate = useCheckValidate()
 
-  const setValues = useCallback((a1) => {
+  const setValues = React.useCallback((a1: any) => {
     if (typeof a1 === 'function') {
       const newValues = a1(values)
       dispatchValues({
@@ -73,7 +106,7 @@ const useForm = (props) => {
     }
   }, [values])
 
-  const setRules = useCallback((a1) => {
+  const setRules = React.useCallback((a1: any) => {
     if (typeof a1 === 'function') {
       const newRules = a1(rules)
       dispatchRules({
@@ -88,7 +121,7 @@ const useForm = (props) => {
     }
   }, [rules])
 
-  const setErrors = useCallback((a1) => {
+  const setErrors = React.useCallback((a1: any) => {
     if (typeof a1 === 'function') {
       const newErrors = a1(errors)
       dispatchErrors({
@@ -103,7 +136,7 @@ const useForm = (props) => {
     }
   }, [errors])
 
-  const validate = useCallback((next, end, getErrorArray, onSubmitError) => {
+  const validate = React.useCallback((next: Function, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void): Validate => {
     setSubmitted(true)
     let errors = {}
     if (rules) {
@@ -118,8 +151,8 @@ const useForm = (props) => {
     if (rules && Object.keys(errors).length) {
       setSubmitting(false)
       const firstId = Object.keys(errors)[0]
-      const ele = document.getElementById(firstId)
-      let returner = false
+      const ele = document.getElementById(firstId)! as HTMLElement
+      let returner: Validate = false
       if (ele) {
         const typeEle = ele.getAttribute('type')
         if (!!ele.focus && (typeEle !== 'checkbox' && typeEle !== 'radio') && typeEle !== null) {
@@ -150,7 +183,7 @@ const useForm = (props) => {
     }
   }, [rules, values, checkValidate])
 
-  const handlerChange = useCallback((name, value, type = 'string') => {
+  const handlerChange = React.useCallback((name: any, value?: any, type: 'string' | 'number' = 'string') => {
     if (typeof name === 'function') {
       const newValues = name(values)
       dispatchErrors({
@@ -167,13 +200,13 @@ const useForm = (props) => {
     } else if (name?.target?.name && name?.target?.value) {
       const inputName = name?.target?.name
       const inputValue = name?.target?.value
-   
+
       dispatchErrors({
         type: actionTypes.MAIN.CHANGE,
         key: inputName,
         value: checkErr(rules[inputName], inputValue, inputName, values)
       })
-     
+
       dispatchValues({
         type: actionTypes.MAIN.CHANGE,
         key: inputName,
@@ -186,7 +219,7 @@ const useForm = (props) => {
     } else if (typeof name === 'object') {
       const newValues = name
       if (submitted && rules) {
-        const errors = {}
+        const errors: {[unit: string]: any} = {}
         for (const name in newValues) {
           const value = newValues[name]
           errors[name] = checkErr(rules[name], value, name, values)
@@ -222,7 +255,6 @@ const useForm = (props) => {
       }
       switch (type) {
         case 'string': {
-
           dispatchValues({
             type: actionTypes.MAIN.CHANGE,
             key: name,
@@ -254,7 +286,7 @@ const useForm = (props) => {
     }
   }, [errors, rules, submitted, values, onValuesUpdate])
 
-  const handlerReset = useCallback((valuesReset = {}) => {
+  const handlerReset = React.useCallback((valuesReset: any = {}) => {
     dispatchValues({
       type: actionTypes.MAIN.RESET,
       payload: valuesReset
@@ -282,20 +314,6 @@ const useForm = (props) => {
     whiteList,
     submitted
   }
-}
-
-useForm.propTypes = {
-  initialValues: PropTypes.object.isRequired,
-  rules: PropTypes.object.isRequired,
-  blackList: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.string),
-    PropTypes.string
-  ]),
-  whiteList: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.string),
-    PropTypes.string
-  ]),
-  onValuesUpdate: PropTypes.func
 }
 
 export default useForm

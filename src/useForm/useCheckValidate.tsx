@@ -1,6 +1,7 @@
 import React, { Fragment, useCallback } from 'react'
+import type { Rules } from './useForm'
 
-export const getRequiredMsg = (label, local = 'th') => {
+export const getRequiredMsg = (label: string, local: 'th' | 'en' = 'th') => {
   const locals = {
     en: 'Please input ',
     th: 'โปรดระบุ '
@@ -10,8 +11,8 @@ export const getRequiredMsg = (label, local = 'th') => {
 }
 
 const useCheckValidate = () => {
-  return useCallback((values, rules) => {
-    const errors = {}
+  return useCallback((values: any, rules: Rules) => {
+    const errors: {[unit: string]: any} = {}
 
     for (const field in rules) {
       if (Object.hasOwnProperty.call(rules, field)) {
@@ -24,7 +25,7 @@ const useCheckValidate = () => {
   }, [])
 }
 
-export const checkErr = (fieldRules, value, fieldName, values) => {
+export const checkErr = (fieldRules: any, value: any, fieldName: string, values: any) => {
   let errMsg
   for (const rule in fieldRules) {
     const valueRule = fieldRules[rule]
@@ -80,7 +81,7 @@ export const checkErr = (fieldRules, value, fieldName, values) => {
   return errMsg
 }
 
-const CheckEmpty = (value) => {
+const CheckEmpty = (value: any) => {
   if ((value || value === 0) && typeof value === 'number') {
     return true
   } else if (value && typeof value === 'string' && value.trim() !== '') {
