@@ -1,7 +1,6 @@
 {
-  "name": "react-useform",
+  "name": "@olapat/react-useform",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^11.2.7",
@@ -39,5 +38,20 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Olapat/react-useform.git"
+  },
+  "keywords": [
+    "react",
+    "react",
+    "useform"
+  ],
+  "author": "Olapat <lapatbr19@gmail.com> (https://github.com/Olapat)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Olapat/react-useform/issues"
+  },
+  "homepage": "https://github.com/Olapat/react-useform#readme"
 }
