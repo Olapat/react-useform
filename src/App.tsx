@@ -1,8 +1,13 @@
 import React from 'react'
 import { Form, useForm } from './components/form'
 
+interface ValuesType {
+  date: string,
+  text: string
+}
+
 const App = () => {
-  const form = useForm({
+  const form = useForm<ValuesType>({
     initialValues: {
       date: '',
       text: ''
@@ -27,7 +32,7 @@ const App = () => {
 
   return (
     <main>
-      <Form form={form} handlerSubmit={onSubmit}>
+      <Form<ValuesType> form={form} handlerSubmit={onSubmit}>
         <fieldset>
           <legend>Date</legend>
           <input

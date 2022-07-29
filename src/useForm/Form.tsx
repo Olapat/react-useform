@@ -1,28 +1,31 @@
 import React, { createContext, useCallback } from 'react'
-import type { UseFormType } from '../../useForm/useForm'
-import middleware from '../../utils/middleware'
+import type { UseFormType } from './useForm'
+import middleware from '../utils/middleware'
 
-export const FormContext = createContext({})
+export type FormContextType = UseFormType<any> & { isFieldDisable: Function, showStarRequired?: boolean }
+export const FormContext = createContext<FormContextType | null>(null)
 
 interface Props<ValuesType> extends React.FormHTMLAttributes<HTMLFormElement> {
   children: React.ReactNode;
-  handlerSubmit:| ((values: ValuesType, next: Function, end: Function) => any) | Function[];
+  handlerSubmit: Function | Function[];
   form: UseFormType<ValuesType>;
   onSubmitError?: Function;
+  preventEnter?: boolean;
+  showStarRequired?: boolean;
 }
 
 const Form = <ValuesType extends { [key: string]: any } = {}>(props: Props<ValuesType>) => {
-  const { children, handlerSubmit, onSubmitError, form, ...formProps } = props
+  const { children, handlerSubmit, onSubmitError, form, preventEnter = false, showStarRequired = true, ...formProps } = props
   const { setSubmitting, validate, values, blackList, whiteList, rules } = form
 
-  const onStartSubmit = React.useCallback((next: Function) => {
+  const onStartSubmit = useCallback((next: Function) => {
     setSubmitting(true)
     if (typeof next === 'function') {
       next()
     }
   }, [setSubmitting])
 
-  const onEndSubmit = React.useCallback(() => {
+  const onEndSubmit = useCallback(() => {
     setSubmitting(false)
   }, [setSubmitting])
 
@@ -45,25 +48,25 @@ const Form = <ValuesType extends { [key: string]: any } = {}>(props: Props<Value
     } else if (typeof handlerSubmit === 'function') {
       middleware([onStartSubmit, buildValidate, handlerSubmit, onEndSubmit], { end: onEndSubmit })
     }
-  }, [handlerSubmit, buildValidate, onEndSubmit, onStartSubmit])
+  }, [handlerSubmit, buildValidate, onStartSubmit, onEndSubmit])
 
-  const isFieldDisable = useCallback((name):boolean => {
+  const isFieldDisable = useCallback((name: keyof ValuesType):boolean => {
     if (blackList === '*') {
       return true
     } else if (whiteList === '*') {
       return false
     } else if (blackList && blackList?.length) {
-      return blackList.includes(name)
+      return blackList.includes(String(name))
     } else if (whiteList && whiteList?.length) {
-      return !whiteList.includes(name)
+      return !whiteList.includes(String(name))
     } else {
       return false
     }
   }, [whiteList, blackList])
 
   return (
-    <FormContext.Provider value={{ ...form, isFieldDisable }}>
-      <form noValidate onSubmit={_handlerSubmit} {...formProps}>
+    <FormContext.Provider value={{ ...form, isFieldDisable, showStarRequired }}>
+      <form noValidate onSubmit={_handlerSubmit} {...formProps} onKeyDown={(e) => { if (preventEnter && e.code === 'Enter') e.preventDefault() }}>
         {children}
       </form>
     </FormContext.Provider>

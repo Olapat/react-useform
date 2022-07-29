@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback } from 'react'
+import { useCallback } from 'react'
 import type { Rules } from './useForm'
 
 export const getRequiredMsg = (label: string, local: 'th' | 'en' = 'th') => {
@@ -10,8 +10,8 @@ export const getRequiredMsg = (label: string, local: 'th' | 'en' = 'th') => {
   return locals[local] + label
 }
 
-const useCheckValidate = () => {
-  return useCallback((values: any, rules: Rules) => {
+const useCheckValidate = <ValuesType extends { [key: string]: any } = {}>() => {
+  return useCallback((values: any, rules: Rules<ValuesType>) => {
     const errors: {[unit: string]: any} = {}
 
     for (const field in rules) {
@@ -55,16 +55,7 @@ export const checkErr = (fieldRules: any, value: any, fieldName: string, values:
           }
         }
         if (errMsgs.length) {
-          errMsg = (
-            <>
-              {errMsgs.map((item, index) => (
-                <Fragment key={index}>
-                  {index !== 0 && <br />}
-                  {item}
-                </Fragment>
-              ))}
-            </>
-          )
+          errMsg = errMsgs.join()
         } else {
           errMsg = undefined
         }

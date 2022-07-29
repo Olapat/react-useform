@@ -2,10 +2,12 @@ import * as React from 'react'
 import { actionTypes } from './actions'
 import useCheckValidate, { checkErr } from './useCheckValidate'
 
-type State = any
+type Reducer<State, Action> =
+  (state: State, action: Action) => State;
+
 type Action = { type: string, key?: string, value?: any, payload?: any }
 
-function reducerValues(state: State, action: Action) {
+function reducerValues<ValuesType extends { [key: string]: any }>(state: ValuesType, action: Action) {
   switch (action.type) {
     case actionTypes.MAIN.CHANGE:
       return { ...state, [action.key || '']: action.value }
@@ -18,7 +20,7 @@ function reducerValues(state: State, action: Action) {
   }
 }
 
-function reducerRules(state: State, action: Action) {
+function reducerRules<RulesState>(state: RulesState, action: Action) {
   switch (action.type) {
     case actionTypes.MAIN.CHANGE:
       return { ...state, [action.key || '']: action.value }
@@ -31,12 +33,14 @@ function reducerRules(state: State, action: Action) {
   }
 }
 
-function reducerError(state: State, action: Action) {
+function reducerError<ErrorState>(state: ErrorState, action: Action) {
   switch (action.type) {
     case actionTypes.MAIN.CHANGE:
       return { ...state, [action.key || '']: action.value }
     case actionTypes.MAIN.SET:
       return { ...state, ...action.payload }
+    case actionTypes.MAIN.SET_NEW:
+      return action.payload
     case actionTypes.MAIN.RESET:
       return { ...action.payload }
     default:
@@ -44,54 +48,62 @@ function reducerError(state: State, action: Action) {
   }
 }
 
-export type Rules = {
-  [unit: string]: {
-    'required'?: string | boolean,
+export type Rules<ValuesType> = {
+  [unit in keyof Partial<ValuesType>]: {
+    'required'?: string | boolean;
     'isAllowed'?: {
-      func: (value: any, values: {}) => boolean,
-      msg: React.ReactNode | string
-    }
-  },
-}
+      func: (value: any, values: ValuesType) => boolean;
+      msg: React.ReactNode | string;
+    };
+  };
+};
+
+export type ErrorForm<ValuesType> = {
+  [unit in keyof ValuesType | string]: string | React.ReactNode | undefined | null
+} | { [K: string]: string | React.ReactNode | undefined | null }
+
+export type ReactChangeEvent = React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+
+export type Argument1OnChange = Function | ReactChangeEvent | string | {}
 
 export type Validate = boolean | [boolean, {}]
 
-export type UseFormType = {
-  initialValues: any
-  values: any
+export type UseFormType<ValuesType> = {
+  initialValues: ValuesType
+  values: ValuesType
   submitting: boolean,
   setSubmitting: Function,
-  rules: Rules,
-  errors: any,
-  setValues: (prev: {}) => any,
+  rules: Rules<ValuesType>,
+  errors: ErrorForm<ValuesType>,
+  setValues: (a1: ((prev: ValuesType) => Partial<ValuesType>) | Partial<ValuesType>) => void,
   validate: (next: Function, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void) => Validate,
-  setRules: (prev: Rules) => any,
-  setErrors: (prev: {}) => any,
+  setRules: (prev: Rules<ValuesType | {}>) => any,
+  setErrors: (a1: ((prev: ErrorForm<ValuesType>) => ErrorForm<ValuesType>) | keyof ValuesType) => void,
   handlerReset: (values: {}) => void,
-  handlerChange: (name?: string | {}, value?: any, type?: 'string' | 'number') => void,
+  handlerChange: (name: Argument1OnChange | Partial<ValuesType> | keyof ValuesType, value?: any, type?: 'string' | 'number') => void,
   blackList?: string | string[],
   whiteList?: string | string[],
   submitted: boolean
 }
 
-interface Props {
-  initialValues: any,
-  rules: Rules,
+interface Props<ValuesType> {
+  initialValues: ValuesType,
+  rules: Rules<ValuesType>,
   blackList?: string | string[],
   whiteList?: string | string[],
-  onValuesUpdate?: (values: {}) => void
+  onValuesUpdate?: (values: ValuesType) => void
 }
 
-const useForm = (props: Props): UseFormType => {
+const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<ValuesType>): UseFormType<ValuesType> => {
   const { initialValues, rules: initialRules, blackList, whiteList, onValuesUpdate } = props
-  const [values, dispatchValues] = React.useReducer(reducerValues, initialValues)
+  const [values, dispatchValues] = React.useReducer<Reducer<ValuesType, Action>>(reducerValues, initialValues)
   const [submitting, setSubmitting] = React.useState(false)
   const [submitted, setSubmitted] = React.useState(false)
-  const [rules, dispatchRules] = React.useReducer(reducerRules, initialRules)
-  const [errors, dispatchErrors] = React.useReducer(reducerError, {})
-  const checkValidate = useCheckValidate()
+  const [rules, dispatchRules] = React.useReducer<Reducer<Rules<ValuesType>, Action>>(reducerRules, initialRules)
+  const [errors, dispatchErrors] = React.useReducer<Reducer<ErrorForm<ValuesType>, Action>>(reducerError, {})
+  const checkValidate = useCheckValidate<ValuesType>()
 
-  const setValues = React.useCallback((a1: any) => {
+  const setValues = React.useCallback((a1: ((prev: ValuesType) => Partial<ValuesType>) | Partial<ValuesType>) => {
     if (typeof a1 === 'function') {
       const newValues = a1(values)
       dispatchValues({
@@ -121,7 +133,7 @@ const useForm = (props: Props): UseFormType => {
     }
   }, [rules])
 
-  const setErrors = React.useCallback((a1: any) => {
+  const setErrors = React.useCallback((a1: ((err: ErrorForm<ValuesType>) => ErrorForm<ValuesType>) | keyof ValuesType) => {
     if (typeof a1 === 'function') {
       const newErrors = a1(errors)
       dispatchErrors({
@@ -142,12 +154,11 @@ const useForm = (props: Props): UseFormType => {
     if (rules) {
       errors = checkValidate(values, rules)
       dispatchErrors({
-        type: actionTypes.MAIN.SET,
+        type: actionTypes.MAIN.SET_NEW,
         payload: errors
       })
     }
 
-    if (process.env.NODE_ENV === 'development') console.log('errors', errors)
     if (rules && Object.keys(errors).length) {
       setSubmitting(false)
       const firstId = Object.keys(errors)[0]
@@ -183,9 +194,9 @@ const useForm = (props: Props): UseFormType => {
     }
   }, [rules, values, checkValidate])
 
-  const handlerChange = React.useCallback((name: any, value?: any, type: 'string' | 'number' = 'string') => {
-    if (typeof name === 'function') {
-      const newValues = name(values)
+  const handlerChange = React.useCallback((a1: Argument1OnChange | Partial<ValuesType> | keyof ValuesType, value?: any, type: 'string' | 'number' = 'string') => {
+    if (typeof a1 === 'function') {
+      const newValues = a1(values)
       dispatchErrors({
         type: actionTypes.MAIN.SET,
         payload: errors
@@ -197,49 +208,53 @@ const useForm = (props: Props): UseFormType => {
       if (typeof onValuesUpdate === 'function') {
         onValuesUpdate({ ...values, ...newValues })
       }
-    } else if (name?.target?.name && name?.target?.value) {
-      const inputName = name?.target?.name
-      const inputValue = name?.target?.value
-
-      dispatchErrors({
-        type: actionTypes.MAIN.CHANGE,
-        key: inputName,
-        value: checkErr(rules[inputName], inputValue, inputName, values)
-      })
-
-      dispatchValues({
-        type: actionTypes.MAIN.CHANGE,
-        key: inputName,
-        value: inputValue
-      })
-
-      if (typeof onValuesUpdate === 'function') {
-        onValuesUpdate({ ...values, [inputName]: inputValue })
-      }
-    } else if (typeof name === 'object') {
-      const newValues = name
-      if (submitted && rules) {
-        const errors: {[unit: string]: any} = {}
-        for (const name in newValues) {
-          const value = newValues[name]
-          errors[name] = checkErr(rules[name], value, name, values)
-        }
+    } else if (typeof a1 === 'object') {
+      const event = a1 as ReactChangeEvent
+      if (event?.target?.name && event?.target?.value) {
+        const inputName = event?.target?.name
+        const inputValue = event?.target?.value
 
         dispatchErrors({
-          type: actionTypes.MAIN.SET,
-          payload: errors
+          type: actionTypes.MAIN.CHANGE,
+          key: inputName,
+          value: checkErr(rules[inputName], inputValue, inputName, values)
         })
-      }
 
-      dispatchValues({
-        type: actionTypes.MAIN.SET,
-        payload: newValues
-      })
+        dispatchValues({
+          type: actionTypes.MAIN.CHANGE,
+          key: inputName,
+          value: inputValue
+        })
 
-      if (typeof onValuesUpdate === 'function') {
-        onValuesUpdate({ ...values, ...newValues })
+        if (typeof onValuesUpdate === 'function') {
+          onValuesUpdate({ ...values, [inputName]: inputValue })
+        }
+      } else {
+        const newValues = a1 as Partial<ValuesType>
+        if (submitted && rules) {
+          let errors: ErrorForm<ValuesType> = {}
+          for (const name in newValues) {
+            const value = newValues[name]
+            errors[name] = checkErr(rules[name], value, name, values)
+          }
+
+          dispatchErrors({
+            type: actionTypes.MAIN.SET,
+            payload: errors
+          })
+        }
+
+        dispatchValues({
+          type: actionTypes.MAIN.SET,
+          payload: newValues
+        })
+
+        if (typeof onValuesUpdate === 'function') {
+          onValuesUpdate({ ...values, ...newValues })
+        }
       }
     } else {
+      const name = (a1 as keyof ValuesType) as string
       if (rules && Object.keys(errors).length && rules[name] && submitted) {
         dispatchErrors({
           type: actionTypes.MAIN.CHANGE,
