@@ -64,7 +64,7 @@ export type ErrorForm<ValuesType> = {
 
 export type ReactChangeEvent = React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 
-export type Argument1OnChange = Function | ReactChangeEvent
+export type Argument1OnChange = Function | ReactChangeEvent | string | {}
 
 export type Validate = boolean | [boolean, {}]
 
@@ -276,7 +276,7 @@ const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<Va
             value: value
           })
           if (typeof onValuesUpdate === 'function') {
-            onValuesUpdate({ ...values, [a1]: value })
+            onValuesUpdate({ ...values, [name]: value })
           }
           break
         }
