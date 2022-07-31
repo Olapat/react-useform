@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { Fragment, useCallback } from 'react'
 import type { Rules } from './useForm'
 
 export const getRequiredMsg = (label: string, local: 'th' | 'en' = 'th') => {
@@ -29,7 +29,7 @@ export const checkErr = (fieldRules: any, value: any, fieldName: string, values:
   let errMsg
   for (const rule in fieldRules) {
     const valueRule = fieldRules[rule]
-    if (typeof valueRule === 'undefined') continue
+    if (typeof valueRule === 'undefined' || !valueRule) continue
     if (Object.hasOwnProperty.call(fieldRules, rule)) {
       switch (rule) {
       case 'required':
@@ -55,7 +55,16 @@ export const checkErr = (fieldRules: any, value: any, fieldName: string, values:
           }
         }
         if (errMsgs.length) {
-          errMsg = errMsgs.join()
+          errMsg = (
+            <>
+              {errMsgs.map((item, index) => (
+                <Fragment key={index}>
+                  {index !== 0 && <br />}
+                  {item}
+                </Fragment>
+              ))}
+            </>
+          )
         } else {
           errMsg = undefined
         }
