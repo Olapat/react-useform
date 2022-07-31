@@ -75,10 +75,10 @@ export type UseFormType<ValuesType> = {
   setSubmitting: Function,
   rules: Rules<ValuesType>,
   errors: ErrorForm<ValuesType>,
-  setValues: (a1: ((prev: ValuesType) => Partial<ValuesType>) | Partial<ValuesType>) => void,
+  setValues: (prev: ValuesType) => any,
   validate: (next: Function, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void) => Validate,
-  setRules: (prev: Rules<ValuesType | {}>) => any,
-  setErrors: (a1: ((prev: ErrorForm<ValuesType>) => ErrorForm<ValuesType>) | keyof ValuesType) => void,
+  setRules: (prev: Rules<ValuesType> | ((prev: Rules<ValuesType>) => Rules<ValuesType>)) => void,
+  setErrors: (prev: ErrorForm<ValuesType>) => any,
   handlerReset: (values: {}) => void,
   handlerChange: (name: Argument1OnChange | Partial<ValuesType> | keyof ValuesType, value?: any, type?: 'string' | 'number') => void,
   blackList?: string | string[],
@@ -96,14 +96,14 @@ interface Props<ValuesType> {
 
 const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<ValuesType>): UseFormType<ValuesType> => {
   const { initialValues, rules: initialRules, blackList, whiteList, onValuesUpdate } = props
-  const [values, dispatchValues] = React.useReducer<Reducer<ValuesType, Action>>(reducerValues, initialValues)
+  const [values, dispatchValues] = React.useReducer(reducerValues, initialValues)
   const [submitting, setSubmitting] = React.useState(false)
   const [submitted, setSubmitted] = React.useState(false)
-  const [rules, dispatchRules] = React.useReducer<Reducer<Rules<ValuesType>, Action>>(reducerRules, initialRules)
-  const [errors, dispatchErrors] = React.useReducer<Reducer<ErrorForm<ValuesType>, Action>>(reducerError, {})
+  const [rules, dispatchRules] = React.useReducer(reducerRules, initialRules)
+  const [errors, dispatchErrors] = React.useReducer(reducerError, {})
   const checkValidate = useCheckValidate<ValuesType>()
 
-  const setValues = React.useCallback((a1: ((prev: ValuesType) => Partial<ValuesType>) | Partial<ValuesType>) => {
+  const setValues = React.useCallback((a1: any) => {
     if (typeof a1 === 'function') {
       const newValues = a1(values)
       dispatchValues({
@@ -118,22 +118,46 @@ const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<Va
     }
   }, [values])
 
-  const setRules = React.useCallback((a1: any) => {
+  const setRules = React.useCallback((a1: Rules<ValuesType> | ((prev: Rules<ValuesType>) => Rules<ValuesType>)) => {
+    let newRules = {}
     if (typeof a1 === 'function') {
-      const newRules = a1(rules)
+      newRules = a1(rules)
       dispatchRules({
         type: actionTypes.MAIN.SET,
         payload: newRules
       })
+      const newErrors:{[unit in string]: undefined} = {}
+      for (const key in newRules) {
+        if (Object.prototype.hasOwnProperty.call(newRules, key)) {
+          newErrors[key] = undefined
+        }
+      }
+      dispatchErrors({
+        type: actionTypes.MAIN.SET,
+        payload: newErrors
+      })
     } else {
+      newRules = a1
       dispatchRules({
         type: actionTypes.MAIN.SET,
         payload: a1
       })
     }
+    const newErrors:{[unit in string]: undefined} = {}
+
+    for (const key in newRules) {
+      if (Object.prototype.hasOwnProperty.call(newRules, key)) {
+        newErrors[key] = undefined
+      }
+    }
+
+    dispatchErrors({
+      type: actionTypes.MAIN.SET,
+      payload: newErrors
+    })
   }, [rules])
 
-  const setErrors = React.useCallback((a1: ((err: ErrorForm<ValuesType>) => ErrorForm<ValuesType>) | keyof ValuesType) => {
+  const setErrors = React.useCallback((a1: any) => {
     if (typeof a1 === 'function') {
       const newErrors = a1(errors)
       dispatchErrors({
@@ -154,7 +178,7 @@ const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<Va
     if (rules) {
       errors = checkValidate(values, rules)
       dispatchErrors({
-        type: actionTypes.MAIN.SET_NEW,
+        type: actionTypes.MAIN.SET,
         payload: errors
       })
     }
