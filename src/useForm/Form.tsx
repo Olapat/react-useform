@@ -1,24 +1,24 @@
 import React, { createContext, useCallback } from 'react'
 import type { UseFormType } from './useForm'
-import useList from '../useFormList/useList'
+import type { UseListType } from '../useFormList/useList'
 import middleware from '../utils/middleware'
 
-export type FormContextType = UseFormType<any> & { isFieldDisable: Function, showStarRequired?: boolean }
-export const FormContext = createContext<FormContextType | null>(null)
+export type FormContextType = UseFormType<any> & { isFieldDisable: Function, showStarRequired?: boolean } | null
+export const FormContext = createContext<FormContextType>(null)
 
-interface Props<ValuesType> extends React.FormHTMLAttributes<HTMLFormElement> {
+interface Props<ValuesType, ValuesListType> extends React.FormHTMLAttributes<HTMLFormElement> {
   children: React.ReactNode;
-  handlerSubmit: Function | Function[];
-  form: UseFormType<ValuesType>;
+  handlerSubmit: (values: ValuesType, next: Function, end: Function) => void | Function[];
+  form: UseFormType<ValuesType>
   onSubmitError?: Function;
   preventEnter?: boolean;
   showStarRequired?: boolean;
-  mode?: string
-  listCtl?: typeof useList
+  mode?: 'list'
+  listCtl?: UseListType<ValuesListType>
 }
 
-const Form = <ValuesType extends { [key: string]: any } = {}>(props: Props<ValuesType>) => {
-  const { children, handlerSubmit, onSubmitError, form, preventEnter = false, showStarRequired = true, mode, ...formProps } = props
+const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType extends { [key: string]: any } = {}>(props: Props<ValuesType, ValuesListType>) => {
+  const { children, handlerSubmit, onSubmitError, form, preventEnter = false, showStarRequired = true, mode, listCtl, ...formProps } = props
   const { setSubmitting, validate, values, blackList, whiteList, rules } = form
 
   const onStartSubmit = useCallback((next: Function) => {
@@ -34,71 +34,18 @@ const Form = <ValuesType extends { [key: string]: any } = {}>(props: Props<Value
 
   const buildValidate = useCallback((next: Function, end: Function) => {
     const resultValid = validate(next, end, true)
-    if (mode !== "list") {
-      let errors = {}
-      if (typeof resultValid === 'boolean') {
-      } else {
-        errors = resultValid[1]
-      }
-     
+    let errors = {}
+    if (typeof resultValid === 'boolean') {
     } else {
-      let errors = {}
-      if (typeof resultValid === 'boolean') {
-      } else {
-        errors = resultValid[1]
-      }
-      const listIsValidA = []
-      for (const keyList in listCtls) {
-        if (Object.hasOwnProperty.call(listCtls, keyList)) {
-          const listCtl = listCtls[keyList]
-          const listIsValid = listCtl.validateListItem()
-          listIsValidA.push(listIsValid)
-        }
-      }
-      if (isValid && listIsValidA.every(item => item === true)) {
-        next(values)
-        return
-      }
+      errors = resultValid[1]
     }
-    
+    if (mode === 'list' && listCtl) {
+      listCtl.validateListItem()
+    }
     if (typeof onSubmitError === 'function') {
       onSubmitError(errors, values, rules)
     }
-  }, [validate, onSubmitError, values, rules])
-
-  const buildValidate = useCallback((next, end) => {
-    const [isValid, errors] = validate()
-    const listIsValidA = []
-    for (const keyList in listCtls) {
-      if (Object.hasOwnProperty.call(listCtls, keyList)) {
-        const listCtl = listCtls[keyList]
-        const listIsValid = listCtl.validateListItem()
-        listIsValidA.push(listIsValid)
-      }
-    }
-    if (isValid && listIsValidA.every(item => item === true)) {
-      next(values)
-      return
-    }
-    end()
-    if (typeof onSubmitError === 'function') {
-      onSubmitError(errors, values, rules)
-    }
-    return [isValid, errors]
-  }, [validate, onSubmitError, values, rules, listCtls])
-
-  const buildValues = useCallback((values, next) => {
-    const newValues = Object.assign({}, values)
-    for (const keyList in listCtls) {
-      if (Object.hasOwnProperty.call(listCtls, keyList)) {
-        const listCtl = listCtls[keyList]
-        const valueList = listCtl.values.flatMap(item => item.map(ite => ite.values))
-        newValues[keyList] = valueList
-      }
-    }
-
-    next(newValues)
-  }, [listCtls])
+  }, [validate, onSubmitError, values, rules, listCtl, mode])
 
   const _handlerSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
