@@ -11,7 +11,7 @@ export const getRequired = (formContext: FormContextType, name: string, required
   return !!formContext?.rules?.[name]?.required
 }
 
-export const getError = (formContext: FormContextType, name: string, error: Function | string) => {
+export const getError = (formContext: FormContextType, name: string, error?: string | React.ReactNode | null | Function) => {
   if (typeof error === 'function') {
     return error(Object.freeze((formContext?.errors?.[name] || {})))
   }
@@ -37,7 +37,7 @@ export const getMessagePure = (fieldName: string, fieldNameTH: string, locale: s
   return fieldName
 }
 
-export const getMessageReq = (fieldName: string, fieldNameTH: string, locale: string) => {
+export const getMessageReq = (fieldName: string, fieldNameTH?: string, locale?: string) => {
   if (locale === 'th') {
     return 'กรุณาระบุ ' + fieldNameTH
   }
