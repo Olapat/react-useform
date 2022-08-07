@@ -39,8 +39,6 @@ function reducerError<ErrorState>(state: ErrorState, action: Action) {
       return { ...state, [action.key || '']: action.value }
     case actionTypes.MAIN.SET:
       return { ...state, ...action.payload }
-    case actionTypes.MAIN.SET_NEW:
-      return action.payload
     case actionTypes.MAIN.RESET:
       return { ...action.payload }
     default:
@@ -86,7 +84,7 @@ export type UseFormType<ValuesType> = {
   submitted: boolean
 }
 
-interface Props<ValuesType> {
+export interface Props<ValuesType> {
   initialValues: ValuesType,
   rules: Rules<ValuesType>,
   blackList?: string | string[],
@@ -96,11 +94,11 @@ interface Props<ValuesType> {
 
 const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<ValuesType>): UseFormType<ValuesType> => {
   const { initialValues, rules: initialRules, blackList, whiteList, onValuesUpdate } = props
-  const [values, dispatchValues] = React.useReducer(reducerValues, initialValues)
+  const [values, dispatchValues] = React.useReducer<Reducer<ValuesType, Action>>(reducerValues, initialValues)
   const [submitting, setSubmitting] = React.useState(false)
   const [submitted, setSubmitted] = React.useState(false)
-  const [rules, dispatchRules] = React.useReducer(reducerRules, initialRules)
-  const [errors, dispatchErrors] = React.useReducer(reducerError, {})
+  const [rules, dispatchRules] = React.useReducer<Reducer<Rules<ValuesType>, Action>>(reducerRules, initialRules)
+  const [errors, dispatchErrors] = React.useReducer<Reducer<ErrorForm<ValuesType>, Action>>(reducerError, {})
   const checkValidate = useCheckValidate<ValuesType>()
 
   const setValues = React.useCallback((a1: any) => {
