@@ -1,6 +1,6 @@
 {
   "name": "@olapat/react-useform",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "devDependencies": {
@@ -13,14 +13,11 @@
     "web-vitals": "^2.1.4"
   },
   "peerDependencies": {
-    "react": "^18.2.0"
+    "react": ">=17.2.0"
   },
-  "dependencies": {},
   "scripts": {
     "clean": "rimraf ./dist",
-    "dist": "babel src --out-dir dist --copy-files",
-    "build": "react-scripts build",
-    "test": "react-scripts test"
+    "dist": "babel src --out-dir dist --copy-files"
   },
   "eslintConfig": {
     "extends": [
