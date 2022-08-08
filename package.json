@@ -19,7 +19,7 @@
     "clean": "rimraf ./dist",
     "dist": "babel src --out-dir dist --copy-files",
     "declaration": "npx -p typescript tsc --declaration src/index.ts --jsx react-jsx --outDir dist --esModuleInterop",
-    "publish": "npm publish --access public"
+    "publish-public": "npm publish --access public"
   },
   "eslintConfig": {
     "extends": [
