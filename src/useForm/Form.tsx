@@ -8,17 +8,18 @@ export const FormContext = createContext<FormContextType>(null)
 
 interface Props<ValuesType, ValuesListType> extends React.FormHTMLAttributes<HTMLFormElement> {
   children: React.ReactNode;
-  handlerSubmit: (values: ValuesType, next: Function, end: Function) => void | Function[];
+  handlerSubmit: ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void) | ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void)[];
   form: UseFormType<ValuesType>
   onSubmitError?: Function;
   preventEnter?: boolean;
   showStarRequired?: boolean;
   mode?: 'list'
-  listCtl?: UseListType<ValuesListType>
+  listCtl?: UseListType<ValuesListType>,
+  listName?: string 
 }
 
 const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType extends { [key: string]: any } = {}>(props: Props<ValuesType, ValuesListType>) => {
-  const { children, handlerSubmit, onSubmitError, form, preventEnter = false, showStarRequired = true, mode, listCtl, ...formProps } = props
+  const { children, handlerSubmit, onSubmitError, form, preventEnter = false, showStarRequired = true, mode, listCtl, listName, ...formProps } = props
   const { setSubmitting, validate, values, blackList, whiteList, rules } = form
 
   const onStartSubmit = useCallback((next: Function) => {
@@ -47,14 +48,22 @@ const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType ext
     }
   }, [validate, onSubmitError, values, rules, listCtl, mode])
 
+  const buildValues = useCallback((values: ValuesType, next: Function, end: Function) => {
+    if (mode === 'list' && listCtl) {
+      next({...values, [listName || 'listValue']: listCtl.values.map(item => item.values) })
+    } else {
+      next(values)
+    }
+  }, [listCtl, mode, listName])
+
   const _handlerSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (Array.isArray(handlerSubmit)) {
-      middleware([onStartSubmit, buildValidate, ...handlerSubmit, onEndSubmit], { end: onEndSubmit })
+      middleware([onStartSubmit, buildValidate, buildValues, ...handlerSubmit, onEndSubmit], { end: onEndSubmit })
     } else if (typeof handlerSubmit === 'function') {
-      middleware([onStartSubmit, buildValidate, handlerSubmit, onEndSubmit], { end: onEndSubmit })
+      middleware([onStartSubmit, buildValidate, buildValues, handlerSubmit, onEndSubmit], { end: onEndSubmit })
     }
-  }, [handlerSubmit, buildValidate, onStartSubmit, onEndSubmit])
+  }, [handlerSubmit, buildValidate, onStartSubmit, onEndSubmit, buildValues])
 
   const isFieldDisable = useCallback((name: keyof ValuesType):boolean => {
     if (blackList === '*') {
