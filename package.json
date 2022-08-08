@@ -1,6 +1,6 @@
 {
   "name": "@olapat/react-useform",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "devDependencies": {
@@ -18,7 +18,8 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "dist": "babel src --out-dir dist --copy-files",
-    "declaration": "npx -p typescript tsc --declaration src/index.ts --jsx react-jsx --outDir dist --esModuleInterop"
+    "declaration": "npx -p typescript tsc --declaration src/index.ts --jsx react-jsx --outDir dist --esModuleInterop",
+    "publish": "npm publish --access public"
   },
   "eslintConfig": {
     "extends": [
