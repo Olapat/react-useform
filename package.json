@@ -17,7 +17,8 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "dist": "babel src --out-dir dist --copy-files"
+    "dist": "babel src --out-dir dist --copy-files",
+    "declaration": "npx -p typescript tsc --declaration src/index.ts --jsx react-jsx --outDir dist --esModuleInterop"
   },
   "eslintConfig": {
     "extends": [
