@@ -95,7 +95,7 @@ const Basic = () => {
 | Props                    | Options                                                               | Required  | Description                                 |
 | ------------------------ | --------------------------------------------------------------------- | --------  | ------------------------------------------- |
 | initialValues            | Object: {[key: string]: any}                                          | true      | Set Initial Values Form                     |
-| rules                    | Object: Rules                                                         | true      | Set Initial Rules Form                      |
+| rules                    | Object: [Rules](#rules)                                               | true      | Set Initial Rules Form                      |
 | blackList	               | String[]                                                              | false     | Field names is set to disabled              |
 | whiteList	               | String[]	                                                             | false     | Field names is set to enabled               |
 | onValuesUpdate           | Function                                                              | null      | Callback on values form updated            |
@@ -110,6 +110,19 @@ const Basic = () => {
 | setRules                 | (newRules: Object) => void                                            | Function to set rules form       |
 | setErrors                | (newErrors: Object) => void                                           | Function to set errors form      |
 | handlerReset             | (newInitValues: Object) => void                                       | Function to reset values         |
+
+### Rules
+| Props                    | Options                                                               | Description                      |
+| ------------------------ | --------------------------------------------------------------------- | -------------------------------- |
+| required                 | boolean or string (Message on invalid)                                | Rule set field to required       |
+| isAllowed                | Object: [IsAllowed](#isAllowed)                                       | Rule set field to allow value    |
+
+### IsAllowed
+| Props                    | Options                                                               | Description                      |
+| ------------------------ | --------------------------------------------------------------------- | -------------------------------- |
+| func                     | (value, values) => boolean                                            | Function is checking value       |
+| msg                      | String                                                                | Message on value not allowed     |
+
 ## License
 
 Copyright (c) 2021-present Olapat. See [LICENSE](./LICENSE.md) for details.
