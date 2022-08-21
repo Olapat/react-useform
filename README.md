@@ -89,6 +89,27 @@ const Basic = () => {
 }
 ```
 
+## Props
+### UseForm
+
+| Props                    | Options                                                               | Required  | Description                                 |
+| ------------------------ | --------------------------------------------------------------------- | --------  | ------------------------------------------- |
+| initialValues            | Object: {[key: string]: any}                                          | true      | Set Initial Values Form                     |
+| rules                    | Object: Rules                                                         | true      | Set Initial Rules Form                      |
+| blackList	               | String[]                                                              | false     | Field names is set to disabled              |
+| whiteList	               | String[]	                                                             | false     | Field names is set to enabled               |
+| onValuesUpdate           | Function                                                              | null      | Callback on values form updated            |
+
+### Controller UseForm
+| Props                    | Options                                                               | Description                      |
+| ------------------------ | --------------------------------------------------------------------- | -------------------------------- |
+| values                   | Object                                                                | Values form                      |
+| handlerChange            | (string: name, value: any) => void                                    | Function to change values        |
+| errors                   | Object                                                                | Errors form                      |
+| setValues                | (newValues: Object) => void                                           | Function to set values form      |
+| setRules                 | (newRules: Object) => void                                            | Function to set rules form       |
+| setErrors                | (newErrors: Object) => void                                           | Function to set errors form      |
+| handlerReset             | (newInitValues: Object) => void                                       | Function to reset values         |
 ## License
 
 Copyright (c) 2021-present Olapat. See [LICENSE](./LICENSE.md) for details.
