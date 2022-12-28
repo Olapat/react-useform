@@ -53,7 +53,7 @@ const Basic = () => {
         <input
           type='text'
           name='username'
-          onChange={handlerChange}
+          onChange={(event) => handlerChange(event.target.name, event.target.value)}
           value={values.username}
         />
         <br />
@@ -64,7 +64,7 @@ const Basic = () => {
         <input
           type='password'
           name='password'
-          onChange={handlerChange}
+          onChange={(event) => handlerChange(event.target.name, event.target.value)}
           value={values.password}
         />
         <br />
@@ -75,7 +75,7 @@ const Basic = () => {
         <input
           type='password'
           name='repassword'
-          onChange={handlerChange}
+          onChange={(event) => handlerChange(event.target.name, event.target.value)}
           value={values.repassword}
         />
         <br />
