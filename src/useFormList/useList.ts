@@ -71,17 +71,8 @@ function reducerValues<ValuesListType>(state: ValuesList<ValuesListType>[], acti
 
 const useList = <ValuesListType extends { [key: string]: any } = {}>(props: Props<ValuesListType>): UseListType<ValuesListType> => {
   const { initialValues } = props
-  useEffect(() => {
-    if (initialValues) {
-      dispatchValues({
-        type: 'ADD_MANY',
-        payload: initialValues
-      })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
-  const [values, dispatchValues] = useReducer<(state: ValuesList<ValuesListType>[], action: DispatchType) => ValuesList<ValuesListType>[]>(reducerValues, [])
+  const [values, dispatchValues] = useReducer<(state: ValuesList<ValuesListType>[], action: DispatchType) => ValuesList<ValuesListType>[]>(reducerValues, initialValues || [])
   const checkValidate = useCheckValidate()
 
   const addListItem = useCallback((init: ValuesList<ValuesListType>) => {

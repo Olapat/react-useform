@@ -47,7 +47,7 @@ const Form = <ValuesType extends { [key: string]: any } = {}>(props: Props<Value
     }
   }, [handlerSubmit, buildValidate, onEndSubmit, onStartSubmit])
 
-  const isFieldDisable = useCallback((name):boolean => {
+  const isFieldDisable = useCallback((name: string):boolean => {
     if (blackList === '*') {
       return true
     } else if (whiteList === '*') {
