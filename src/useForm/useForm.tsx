@@ -64,7 +64,7 @@ export type ReactChangeEvent = React.ChangeEvent<HTMLInputElement | HTMLTextArea
 
 export type Argument1OnChange = Function | ReactChangeEvent | string | {}
 
-export type Validate = boolean | [boolean, {}]
+export type Validate<ValuesType> = boolean | [boolean, {}, ValuesType]
 
 export type UseFormType<ValuesType> = {
   initialValues: ValuesType
@@ -74,7 +74,7 @@ export type UseFormType<ValuesType> = {
   rules: Rules<ValuesType>,
   errors: ErrorForm<ValuesType>,
   setValues: (prev: ValuesType) => any,
-  validate: (next: Function, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void) => Validate,
+  validate: (next: Function | null, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void) => Validate<ValuesType>,
   setRules: (prev: Rules<ValuesType> | ((prev: Rules<ValuesType>) => Rules<ValuesType>)) => void,
   setErrors: (prev: ErrorForm<ValuesType>) => any,
   handlerReset: (values: {}) => void,
@@ -170,7 +170,7 @@ const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<Va
     }
   }, [errors])
 
-  const validate = React.useCallback((next: Function, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void): Validate => {
+  const validate = React.useCallback((next: Function | null, end: Function, getErrorArray?: boolean, onSubmitError?: (errors: {}) => void): Validate<ValuesType> => {
     setSubmitted(true)
     let errors = {}
     if (rules) {
@@ -185,7 +185,7 @@ const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<Va
       setSubmitting(false)
       const firstId = Object.keys(errors)[0]
       const ele = document.getElementById(firstId)! as HTMLElement
-      let returner: Validate = false
+      let returner: Validate<ValuesType> = false
       if (ele) {
         const typeEle = ele.getAttribute('type')
         if (!!ele.focus && (typeEle !== 'checkbox' && typeEle !== 'radio') && typeEle !== null) {
@@ -198,7 +198,7 @@ const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<Va
       if (typeof end === 'function') end()
 
       if (getErrorArray === true) {
-        returner = [false, errors]
+        returner = [false, errors, values]
       } else {
         returner = false
       }
@@ -210,7 +210,7 @@ const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<Va
     if (typeof next === 'function') next(values)
 
     if (getErrorArray === true) {
-      return [true, errors]
+      return [true, errors, values]
     } else {
       return true
     }

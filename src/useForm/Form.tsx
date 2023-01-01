@@ -34,17 +34,30 @@ const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType ext
   }, [setSubmitting])
 
   const buildValidate = useCallback((next: Function, end: Function) => {
-    const resultValid = validate(next, end, true)
+    const resultValid = validate(null, end, true)
     let errors = {}
+    let isValid = false
+    let _values = null
     if (typeof resultValid === 'boolean') {
     } else {
+      isValid = resultValid[0]
       errors = resultValid[1]
+      _values = resultValid[2]
     }
     if (mode === 'list' && listCtl) {
-      listCtl.validateListItem()
+      const isValidList = listCtl.validateListItem()
+      if (isValid && isValidList) {
+        next(_values)
+        return
+      }
+    } else if (mode !== 'list') {
+      if (isValid) {
+        next(_values)
+        return
+      } 
     }
     if (typeof onSubmitError === 'function') {
-      onSubmitError(errors, values, rules)
+      onSubmitError(errors, _values, rules)
     }
   }, [validate, onSubmitError, values, rules, listCtl, mode])
 
