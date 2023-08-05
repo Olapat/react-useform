@@ -61,7 +61,7 @@ const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType ext
     }
   }, [validate, onSubmitError, values, rules, listCtl, mode])
 
-  const buildValues = useCallback((values: ValuesType, next: Function, end: Function) => {
+  const buildValues = useCallback((values: ValuesType, next: Function) => {
     if (mode === 'list' && listCtl) {
       next({...values, [listName || 'listValue']: listCtl.values.map(item => item.values) })
     } else {
