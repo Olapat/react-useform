@@ -8,7 +8,7 @@ export const FormContext = createContext<FormContextType>(null)
 
 interface Props<ValuesType, ValuesListType> extends React.FormHTMLAttributes<HTMLFormElement> {
   children: React.ReactNode;
-  handlerSubmit: ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void) | ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void)[];
+  handlerSubmit: ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void) | ((values: any & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void)[];
   form: UseFormType<ValuesType>
   onSubmitError?: Function;
   preventEnter?: boolean;
