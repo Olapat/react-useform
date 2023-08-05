@@ -1,6 +1,6 @@
 {
   "name": "@olapat/react-useform",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "devDependencies": {
