@@ -59,6 +59,7 @@ const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType ext
     if (typeof onSubmitError === 'function') {
       onSubmitError(errors, _values, rules)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validate, onSubmitError, values, rules, listCtl, mode])
 
   const buildValues = useCallback((values: ValuesType, next: Function) => {
