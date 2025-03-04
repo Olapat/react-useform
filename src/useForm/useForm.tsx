@@ -2,9 +2,6 @@ import * as React from 'react'
 import { actionTypes } from './actions'
 import useCheckValidate, { checkErr } from './useCheckValidate'
 
-type Reducer<State, Action> =
-  (state: State, action: Action) => State;
-
 type Action = { type: string, key?: string, value?: any, payload?: any }
 
 function reducerValues<ValuesType extends { [key: string]: any }>(state: ValuesType, action: Action) {
