@@ -8,7 +8,8 @@ export const FormContext = createContext<FormContextType>(null)
 
 interface Props<ValuesType, ValuesListType> extends React.FormHTMLAttributes<HTMLFormElement> {
   children: React.ReactNode;
-  handlerSubmit: ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void) | ((values: any & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void)[];
+  handleSubmit: ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void) | ((values: any & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void)[];
+  /** @deprecated Please use handleSubmit instead. */ handlerSubmit?: ((values: ValuesType & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void) | ((values: any & { [K: string]: ValuesListType[] }, next: Function, end: Function) => void)[];
   form: UseFormType<ValuesType>
   onSubmitError?: Function;
   preventEnter?: boolean;
@@ -19,7 +20,7 @@ interface Props<ValuesType, ValuesListType> extends React.FormHTMLAttributes<HTM
 }
 
 const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType extends { [key: string]: any } = {}>(props: Props<ValuesType, ValuesListType>) => {
-  const { children, handlerSubmit, onSubmitError, form, preventEnter = false, showStarRequired = true, mode, listCtl, listName, ...formProps } = props
+  const { children, handlerSubmit, handleSubmit, onSubmitError, form, preventEnter = false, showStarRequired = true, mode, listCtl, listName, ...formProps } = props;
   const { setSubmitting, validate, values, blackList, whiteList, rules } = form
 
   const onStartSubmit = useCallback((next: Function) => {
@@ -72,12 +73,13 @@ const Form = <ValuesType extends { [key: string]: any } = {}, ValuesListType ext
 
   const _handlerSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (Array.isArray(handlerSubmit)) {
-      middleware([onStartSubmit, buildValidate, buildValues, ...handlerSubmit, onEndSubmit], { end: onEndSubmit })
-    } else if (typeof handlerSubmit === 'function') {
-      middleware([onStartSubmit, buildValidate, buildValues, handlerSubmit, onEndSubmit], { end: onEndSubmit })
+    const handle = handleSubmit || handlerSubmit
+    if (Array.isArray(handle)) { 
+      middleware([onStartSubmit, buildValidate, buildValues, ...handle, onEndSubmit], { end: onEndSubmit })
+    } else if (typeof handle === 'function') {
+      middleware([onStartSubmit, buildValidate, buildValues, handle, onEndSubmit], { end: onEndSubmit })
     }
-  }, [handlerSubmit, buildValidate, onStartSubmit, onEndSubmit, buildValues])
+  }, [handlerSubmit, handleSubmit, buildValidate, onStartSubmit, onEndSubmit, buildValues])
 
   const isFieldDisable = useCallback((name: keyof ValuesType):boolean => {
     if (blackList === '*') {
