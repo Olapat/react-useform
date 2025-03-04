@@ -92,13 +92,15 @@ export interface Props<ValuesType> {
   onValuesUpdate?: (values: ValuesType) => void
 }
 
+const initialErrors: Record<string, any> = {}
+
 const useForm = <ValuesType extends { [key: string]: any } = {}>(props: Props<ValuesType>): UseFormType<ValuesType> => {
   const { initialValues, rules: initialRules, blackList, whiteList, onValuesUpdate } = props
-  const [values, dispatchValues] = React.useReducer<Reducer<ValuesType, Action>>(reducerValues, initialValues)
+  const [values, dispatchValues] = React.useReducer(reducerValues, initialValues)
   const [submitting, setSubmitting] = React.useState(false)
   const [submitted, setSubmitted] = React.useState(false)
-  const [rules, dispatchRules] = React.useReducer<Reducer<Rules<ValuesType>, Action>>(reducerRules, initialRules)
-  const [errors, dispatchErrors] = React.useReducer<Reducer<ErrorForm<ValuesType>, Action>>(reducerError, {})
+  const [rules, dispatchRules] = React.useReducer(reducerRules, initialRules)
+  const [errors, dispatchErrors] = React.useReducer(reducerError, initialErrors)
   const checkValidate = useCheckValidate<ValuesType>()
 
   const setValues = React.useCallback((a1: any) => {

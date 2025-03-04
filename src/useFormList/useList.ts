@@ -72,7 +72,7 @@ function reducerValues<ValuesListType>(state: ValuesList<ValuesListType>[], acti
 const useList = <ValuesListType extends { [key: string]: any } = {}>(props: Props<ValuesListType>): UseListType<ValuesListType> => {
   const { initialValues } = props
 
-  const [values, dispatchValues] = useReducer<(state: ValuesList<ValuesListType>[], action: DispatchType) => ValuesList<ValuesListType>[]>(reducerValues, initialValues || [])
+  const [values, dispatchValues] = useReducer(reducerValues, initialValues || [])
   const checkValidate = useCheckValidate()
 
   const addListItem = useCallback((init: ValuesList<ValuesListType>) => {
